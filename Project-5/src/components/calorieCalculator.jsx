@@ -1,105 +1,82 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle, MinusCircle, Activity, Utensils, Apple } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useParams } from "react-router-dom"; // Import for route params
+import { PlusCircle, MinusCircle, Activity, Utensils } from "lucide-react";
+import { NutritionCircle } from "./NutritionCircle"; // Assume this is your reusable circle component
 
-// This would come from your QR scan
-const SCANNED_FOOD_EXAMPLE = {
-  name: "Grilled Chicken Sandwich",
-  servingSize: "1 sandwich (250g)",
-  nutrition: {
-    calories: 350,
-    protein: 28,
-    carbs: 35,
-    fats: 12,
-    fiber: 4,
-    sugar: 3
+const mockApiData = {
+  1: {
+    id: 1,
+    name: " Chicken Sandwich",
+    servingSize: "1 sandwich (250g)",
+    nutrition: {
+      calories: 350,
+      protein: 28,
+      carbs: 35,
+      fats: 12,
+      fiber: 4,
+      sugar: 3,
+    },
+    ingredients: ["Chicken breast", "Whole wheat bread", "Lettuce", "Tomato", "Mayo"],
+    allergens: ["Wheat", "Eggs"],
+    imageUrl: "/api/placeholder/400/300",
   },
-  ingredients: ["Chicken breast", "Whole wheat bread", "Lettuce", "Tomato", "Mayo"],
-  allergens: ["Wheat", "Eggs"],
-  imageUrl: "/api/placeholder/400/300"
+  2: {
+    id: 2,
+    name: "Veggie Wrap",
+    servingSize: "1 wrap (200g)",
+    nutrition: {
+      calories: 250,
+      protein: 10,
+      carbs: 40,
+      fats: 5,
+      fiber: 8,
+      sugar: 2,
+    },
+    ingredients: ["Tortilla", "Lettuce", "Tomato", "Cucumber", "Hummus"],
+    allergens: ["Wheat"],
+    imageUrl: "/api/placeholder/400/300",
+  },
 };
 
-const NutritionCircle = ({ value, total, label, color }) => {
-  const percentage = Math.min((value / total) * 100, 100);
-  
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-24 h-24">
-        <svg className="w-24 h-24 -rotate-90">
-          <circle
-            cx="48"
-            cy="48"
-            r="45"
-            className="fill-none stroke-gray-200"
-            strokeWidth="6"
-          />
-          <circle
-            cx="48"
-            cy="48"
-            r="45"
-            className={`fill-none ${color}`}
-            strokeWidth="6"
-            strokeDasharray={`${percentage * 2.827} 282.7`}
-          />
-        </svg>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <div className="text-xl font-bold">{Math.round(value)}</div>
-          <div className="text-xs text-gray-500">/ {total}</div>
-        </div>
-      </div>
-      <span className="mt-2 text-sm font-medium">{label}</span>
-    </div>
-  );
-};
-
-const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
+const FoodDetailTracker = () => {
+  const { id } = useParams(); // Get the `id` from the route
+  const [foodData, setFoodData] = useState(null);
   const [servings, setServings] = useState(1);
-  const [dailyTotals, setDailyTotals] = useState({
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fats: 0
-  });
   const [trackedItems, setTrackedItems] = useState([]);
 
   const DAILY_GOALS = {
     calories: 2000,
     protein: 150,
     carbs: 250,
-    fats: 65
+    fats: 65,
   };
 
   useEffect(() => {
-    const savedItems = localStorage.getItem('trackedItems');
-    if (savedItems) {
-      setTrackedItems(JSON.parse(savedItems));
-    }
-  }, []);
-
-  useEffect(() => {
-    const totals = trackedItems.reduce((acc, item) => ({
-      calories: acc.calories + (item.nutrition.calories * item.servings),
-      protein: acc.protein + (item.nutrition.protein * item.servings),
-      carbs: acc.carbs + (item.nutrition.carbs * item.servings),
-      fats: acc.fats + (item.nutrition.fats * item.servings)
-    }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
-
-    setDailyTotals(totals);
-    localStorage.setItem('trackedItems', JSON.stringify(trackedItems));
-  }, [trackedItems]);
-
-  const handleAddFood = () => {
-    if (servings <= 0) return;
-    
-    const newItem = {
-      ...scannedFood,
-      servings,
-      timestamp: new Date().toISOString()
+    // Simulating data fetching
+    const fetchData = async () => {
+      const data = mockApiData[id];
+      setFoodData(data);
     };
 
-    setTrackedItems(prev => [...prev, newItem]);
+    fetchData();
+  }, [id]);
+
+  const handleAddFood = () => {
+    if (!foodData || servings <= 0) return;
+
+    const newItem = {
+      ...foodData,
+      servings,
+      timestamp: new Date().toISOString(),
+    };
+
+    setTrackedItems((prev) => [...prev, newItem]);
     setServings(1);
   };
+
+  if (!foodData) {
+    return <p>Loading food details...</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-4">
@@ -108,29 +85,29 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row gap-6">
             <img
-              src={scannedFood.imageUrl}
-              alt={scannedFood.name}
+              src={foodData.imageUrl}
+              alt={foodData.name}
               className="w-full md:w-1/3 h-48 object-cover rounded-lg"
             />
             <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-2">{scannedFood.name}</h2>
-              <p className="text-gray-600 mb-4">Serving Size: {scannedFood.servingSize}</p>
-              
+              <h2 className="text-2xl font-bold mb-2">{foodData.name}</h2>
+              <p className="text-gray-600 mb-4">Serving Size: {foodData.servingSize}</p>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{scannedFood.nutrition.calories}</div>
+                  <div className="text-lg font-bold">{foodData.nutrition.calories}</div>
                   <div className="text-sm text-gray-600">Calories</div>
                 </div>
                 <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{scannedFood.nutrition.protein}g</div>
+                  <div className="text-lg font-bold">{foodData.nutrition.protein}g</div>
                   <div className="text-sm text-gray-600">Protein</div>
                 </div>
                 <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{scannedFood.nutrition.carbs}g</div>
+                  <div className="text-lg font-bold">{foodData.nutrition.carbs}g</div>
                   <div className="text-sm text-gray-600">Carbs</div>
                 </div>
                 <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{scannedFood.nutrition.fats}g</div>
+                  <div className="text-lg font-bold">{foodData.nutrition.fats}g</div>
                   <div className="text-sm text-gray-600">Fats</div>
                 </div>
               </div>
@@ -159,9 +136,9 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
 
               <div className="space-y-2">
                 <p className="font-medium">Ingredients:</p>
-                <p className="text-gray-600">{scannedFood.ingredients.join(", ")}</p>
+                <p className="text-gray-600">{foodData.ingredients.join(", ")}</p>
                 <p className="font-medium">Allergens:</p>
-                <p className="text-gray-600">{scannedFood.allergens.join(", ")}</p>
+                <p className="text-gray-600">{foodData.allergens.join(", ")}</p>
               </div>
             </div>
           </div>
@@ -175,59 +152,29 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
           </h2>
           <div className="flex flex-wrap justify-center gap-8">
             <NutritionCircle
-              value={dailyTotals.calories}
+              value={foodData.nutrition.calories * servings}
               total={DAILY_GOALS.calories}
               label="Calories"
               color="stroke-emerald-500"
             />
             <NutritionCircle
-              value={dailyTotals.protein}
+              value={foodData.nutrition.protein * servings}
               total={DAILY_GOALS.protein}
               label="Protein"
               color="stroke-blue-500"
             />
             <NutritionCircle
-              value={dailyTotals.carbs}
+              value={foodData.nutrition.carbs * servings}
               total={DAILY_GOALS.carbs}
               label="Carbs"
               color="stroke-orange-500"
             />
             <NutritionCircle
-              value={dailyTotals.fats}
+              value={foodData.nutrition.fats * servings}
               total={DAILY_GOALS.fats}
               label="Fats"
               color="stroke-purple-500"
             />
-          </div>
-        </div>
-
-        {/* Today's Log */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Utensils className="text-emerald-500" />
-            Today's Food Log
-          </h2>
-          <div className="space-y-4">
-            {trackedItems.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {item.servings} {item.servings === 1 ? 'serving' : 'servings'} • 
-                    {item.nutrition.calories * item.servings} calories
-                  </p>
-                </div>
-                <button
-                  onClick={() => setTrackedItems(prev => prev.filter((_, i) => i !== index))}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            {trackedItems.length === 0 && (
-              <p className="text-center text-gray-500">No items logged yet today</p>
-            )}
           </div>
         </div>
       </div>
