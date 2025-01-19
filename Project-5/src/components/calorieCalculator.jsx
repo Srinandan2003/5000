@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle, MinusCircle, Activity, Utensils, Apple } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Sample data
-let  SCANNED_FOOD_EXAMPLE = {
+// This would come from your QR scan
+const SCANNED_FOOD_EXAMPLE = {
   name: "Grilled Chicken Sandwich",
   servingSize: "1 sandwich (250g)",
   nutrition: {
@@ -100,10 +101,6 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
     setServings(1);
   };
 
-  const getPercentage = (current, goal) => {
-    return Math.round((current / goal) * 100);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-4">
       <div className="max-w-4xl mx-auto">
@@ -120,12 +117,22 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
               <p className="text-gray-600 mb-4">Serving Size: {scannedFood.servingSize}</p>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                {Object.entries(scannedFood.nutrition).map(([key, value]) => (
-                  <div key={key} className="bg-emerald-50 p-3 rounded-lg">
-                    <div className="text-lg font-bold">{value}{key !== 'calories' ? 'g' : ''}</div>
-                    <div className="text-sm text-gray-600 capitalize">{key}</div>
-                  </div>
-                ))}
+                <div className="bg-emerald-50 p-3 rounded-lg">
+                  <div className="text-lg font-bold">{scannedFood.nutrition.calories}</div>
+                  <div className="text-sm text-gray-600">Calories</div>
+                </div>
+                <div className="bg-emerald-50 p-3 rounded-lg">
+                  <div className="text-lg font-bold">{scannedFood.nutrition.protein}g</div>
+                  <div className="text-sm text-gray-600">Protein</div>
+                </div>
+                <div className="bg-emerald-50 p-3 rounded-lg">
+                  <div className="text-lg font-bold">{scannedFood.nutrition.carbs}g</div>
+                  <div className="text-sm text-gray-600">Carbs</div>
+                </div>
+                <div className="bg-emerald-50 p-3 rounded-lg">
+                  <div className="text-lg font-bold">{scannedFood.nutrition.fats}g</div>
+                  <div className="text-sm text-gray-600">Fats</div>
+                </div>
               </div>
 
               <div className="flex items-center gap-4 mb-4">
@@ -153,7 +160,7 @@ const FoodDetailTracker = ({ scannedFood = SCANNED_FOOD_EXAMPLE }) => {
               <div className="space-y-2">
                 <p className="font-medium">Ingredients:</p>
                 <p className="text-gray-600">{scannedFood.ingredients.join(", ")}</p>
-                <p className="font-medium mt-2">Allergens:</p>
+                <p className="font-medium">Allergens:</p>
                 <p className="text-gray-600">{scannedFood.allergens.join(", ")}</p>
               </div>
             </div>
