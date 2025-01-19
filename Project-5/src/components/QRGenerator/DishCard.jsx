@@ -49,14 +49,15 @@ const DishCard = ({ dish, index }) => {
                
             />
 
-            <CardContent>
+             
 
+
+            <CardContent>
                 <Box display="flex" alignItems="center" gap={1} mb={1}>
                     {getCategoryIcon()}
                     <Typography variant="h6">
                         {dish.name}
                     </Typography>
-                    
                 </Box>
                 <Typography variant="body2" color="text.secondary" mb={2}>
                     {dish.description}
@@ -170,7 +171,7 @@ const DishCard = ({ dish, index }) => {
                             ×
                         </IconButton>
                         <QRCodeSVG 
-                            value={`/calculator/${dish.id}`}
+                            value={JSON.stringify(dish)}
                             size={200}
                             level="H"
                         />

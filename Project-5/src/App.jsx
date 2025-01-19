@@ -1,7 +1,6 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Box, Container, Typography } from '@mui/material';
 import DishGrid from './components/QRGenerator/DishGrid';
-import './App.css';
 
 // Create a custom theme
 const theme = createTheme({
@@ -60,29 +59,48 @@ function App() {
         sx={{
           minHeight: '100vh',
           bgcolor: 'background.default',
+          pt: 3,
+          pb: 6,
         }}
       >
-        {/* Main Content */}
-        <DishGrid />
-
-        {/* Footer Section */}
-        <Box
-          component="footer"
-          sx={{
-            mt: 6,
-            py: 3,
-            textAlign: 'center',
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'white',
-          }}
-        >
-          <Container maxWidth="lg">
-            <Typography variant="body2" color="text.secondary">
-            © 2025 <span>FoodieQR</span>. All rights reserved..
+        <Container maxWidth={false}>
+          {/* Header Section */}
+          <Box
+            component="header"
+            sx={{
+              textAlign: 'center',
+              mb: 4,
+            }}
+          >
+            <Typography variant="h2" color="primary" gutterBottom>
+              Restaurant Menu
             </Typography>
-          </Container>
-        </Box>
+            <Typography variant="subtitle1" color="text.secondary">
+              Scan QR codes to view detailed information
+            </Typography>
+          </Box>
+
+          {/* Main Content */}
+          <Box component="main">
+            <DishGrid />
+          </Box>
+
+          {/* Footer Section */}
+          <Box
+            component="footer"
+            sx={{
+              mt: 6,
+              py: 3,
+              textAlign: 'center',
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              © 2025 Restaurant Name. All rights reserved.
+            </Typography>
+          </Box>
+        </Container>
       </Box>
     </ThemeProvider>
   );
