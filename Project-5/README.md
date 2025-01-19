@@ -1,47 +1,62 @@
-# 🍽️ QR Menu Generator with Calorie Calculator
+# QR Menu Generator Feature 🍽️
 
-A modern web application that generates QR codes for restaurant menu items, allowing customers to instantly access detailed nutritional information and calculate calories based on portion sizes.
+## Features Added
+- QR Menu page with interactive dish cards
+- Search functionality for dishes
+- Category-wise filtering (veg, non-veg, starters, etc.)
+- Dynamic QR code generation for each dish
+- Responsive design for all screen sizes
 
-## 🚀 Features
+## Technical Implementation
+- React with Vite for fast development
+- Material UI for modern UI components
+- Framer Motion for smooth animations
+- QR code generation using qrcode.react
+- CSS animations and transitions
 
-### Menu Display
-- **Interactive Menu Cards**: Beautifully designed cards displaying dish information
-- **Category Filtering**: Easy navigation through different food categories
-  - Vegetarian
-  - Non-Vegetarian
-  - Starters
-  - Desserts
-  - Beverages
-- **Smart Search**: Real-time search across all menu items
+## Components Created
+1. **DishGrid.jsx**
+   - Main container for all dishes
+   - Search and filter functionality
+   - Category navigation
 
-### QR Code System
-- **Dynamic QR Generation**: Unique QR codes for each dish
-- **Instant Access**: Quick link to calorie calculator
-- **Mobile Responsive**: Seamless experience across all devices
+2. **DishCard.jsx**
+   - Individual dish display
+   - QR code generation
+   - Nutrition information overlay
+   - Image display
 
-### Calorie Calculator
-- **Portion Control**: Adjust serving sizes
-- **Nutritional Breakdown**: Detailed information including
-  - Calories
-  - Proteins
-  - Carbohydrates
-  - Fats
-  - Fiber
-  - Sugar
+3. **Supporting Components**
+   - SearchBar.jsx
+   - CategoryFilter.jsx
+   - LoadingSpinner.jsx
 
-## 🛠️ Technical Stack
+## Data Structure
+- Implemented dishes-data.js with:
+  - Dish details
+  - Nutritional information
+  - Categories
+  - Pricing
 
-- **Frontend**: React + Vite
-- **Backend**: firebase + local storage
-- **UI Framework**: Material-UI (MUI)
-- **Animations**: Framer Motion
-- **QR Generation**: qrcode.react
-- **Icons**: react-icons, lucide-react
-- **Routing**: react-router-dom
+## QR Code Implementation
+- Each QR code will redirect to: `/calculator/${dish.id}`
+- Ready for integration with calculator page
 
-## 📦 Installation
 
-1. Clone the repository
-```bash
-git clone [https://github.com/Srinandan2003/5000]
-cd [Project-5]
+## Testing Done
+- ✅ All dish cards render correctly
+- ✅ Search functionality works
+- ✅ Category filtering works
+- ✅ QR codes generate properly
+- ✅ Responsive on all screens
+- ✅ Images load correctly
+
+## Next Steps
+- Integration with calculator page
+- Connection with login/signup flow
+- Firebase integration (handled by another team member)
+
+## Notes for Team
+- QR codes are set up to redirect to calculator page
+- Image paths are ready for Firebase URLs
+- Component structure allows easy integration
