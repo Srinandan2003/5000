@@ -1,180 +1,170 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // Import for route params
-import { PlusCircle, MinusCircle, Activity, Utensils } from "lucide-react";
-import { NutritionCircle } from "./NutritionCircle"; // Assume this is your reusable circle component
+import { PlusCircle, MinusCircle } from "lucide-react";
 
-const mockApiData = {
-  1: {
-    id: 1,
-    name: " Chicken Sandwich",
-    servingSize: "1 sandwich (250g)",
-    nutrition: {
-      calories: 350,
-      protein: 28,
-      carbs: 35,
-      fats: 12,
-      fiber: 4,
-      sugar: 3,
-    },
-    ingredients: ["Chicken breast", "Whole wheat bread", "Lettuce", "Tomato", "Mayo"],
-    allergens: ["Wheat", "Eggs"],
-    imageUrl: "/api/placeholder/400/300",
-  },
-  2: {
-    id: 2,
-    name: "Veggie Wrap",
-    servingSize: "1 wrap (200g)",
-    nutrition: {
-      calories: 250,
-      protein: 10,
-      carbs: 40,
-      fats: 5,
-      fiber: 8,
-      sugar: 2,
-    },
-    ingredients: ["Tortilla", "Lettuce", "Tomato", "Cucumber", "Hummus"],
-    allergens: ["Wheat"],
-    imageUrl: "/api/placeholder/400/300",
-  },
-};
-
-const FoodDetailTracker = () => {
-  const { id } = useParams(); // Get the `id` from the route
-  const [foodData, setFoodData] = useState(null);
+const DishTracker = ({ id }) => {
+  const [dish, setDish] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [servings, setServings] = useState(1);
-  const [trackedItems, setTrackedItems] = useState([]);
-
-  const DAILY_GOALS = {
-    calories: 2000,
-    protein: 150,
-    carbs: 250,
-    fats: 65,
-  };
+  const [calculatedNutrition, setCalculatedNutrition] = useState(null);
 
   useEffect(() => {
-    // Simulating data fetching
-    const fetchData = async () => {
-      const data = mockApiData[id];
-      setFoodData(data);
+    const fetchDish = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`https://project02-a6ab2-default-rtdb.firebaseio.com/dishes/${id}.json`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch dish");
+        }
+        const data = await response.json();
+        if (!data) {
+          throw new Error("Dish not found");
+        }
+        setDish(data);
+        setCalculatedNutrition(calculateNutrition(data.items, servings));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchData();
+    if (id) {
+      fetchDish();
+    }
   }, [id]);
 
-  const handleAddFood = () => {
-    if (!foodData || servings <= 0) return;
+  useEffect(() => {
+    if (dish?.items) {
+      setCalculatedNutrition(calculateNutrition(dish.items, servings));
+    }
+  }, [servings, dish]);
 
-    const newItem = {
-      ...foodData,
-      servings,
-      timestamp: new Date().toISOString(),
+  const calculateNutrition = (items, servingCount) => {
+    const totalNutrition = items.reduce(
+      (totals, item) => {
+        const quantityFactor = item.quantity / 100; // Assuming nutrition values are per 100g/unit
+        return {
+          calories: totals.calories + item.caloriesPerUnit * quantityFactor,
+          protein: totals.protein + item.nutrition.protein * quantityFactor,
+          carbohydrates: totals.carbohydrates + item.nutrition.carbohydrates * quantityFactor,
+          fats: totals.fats + item.nutrition.fats * quantityFactor,
+          fiber: totals.fiber + item.nutrition.fiber * quantityFactor,
+          sugar: totals.sugar + item.nutrition.sugar * quantityFactor,
+        };
+      },
+      { calories: 0, protein: 0, carbohydrates: 0, fats: 0, fiber: 0, sugar: 0 }
+    );
+
+    return {
+      calories: (totalNutrition.calories || 0) * servingCount,
+      protein: (totalNutrition.protein || 0) * servingCount,
+      carbohydrates: (totalNutrition.carbohydrates || 0) * servingCount,
+      fats: (totalNutrition.fats || 0) * servingCount,
+      fiber: (totalNutrition.fiber || 0) * servingCount,
+      sugar: (totalNutrition.sugar || 0) * servingCount,
     };
-
-    setTrackedItems((prev) => [...prev, newItem]);
-    setServings(1);
   };
 
-  if (!foodData) {
-    return <p>Loading food details...</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-red-600">Error: {error}</p>
+      </div>
+    );
+  }
+
+  if (!dish) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-gray-600">No dish found</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Scanned Food Details */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <img
-              src={foodData.imageUrl}
-              alt={foodData.name}
-              className="w-full md:w-1/3 h-48 object-cover rounded-lg"
-            />
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-2">{foodData.name}</h2>
-              <p className="text-gray-600 mb-4">Serving Size: {foodData.servingSize}</p>
+    <div
+      className="min-h-screen bg-cover bg-center p-6"
+      style={{ backgroundImage: "url('/food-bg-image.jpg')" }}
+    >
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 opacity-90">
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 text-center">{dish.name}</h2>
+        
+        <div className="flex flex-col md:flex-row gap-6 mb-4">
+          <img
+            src={dish.image || "/api/placeholder/400/300"}
+            alt={dish.name}
+            className="w-full md:w-1/3 h-48 object-cover rounded-lg shadow-md"
+          />
+          
+          <div className="flex-1">
+            <p className="text-gray-600 mb-4">{dish.description}</p>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{foodData.nutrition.calories}</div>
-                  <div className="text-sm text-gray-600">Calories</div>
-                </div>
-                <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{foodData.nutrition.protein}g</div>
-                  <div className="text-sm text-gray-600">Protein</div>
-                </div>
-                <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{foodData.nutrition.carbs}g</div>
-                  <div className="text-sm text-gray-600">Carbs</div>
-                </div>
-                <div className="bg-emerald-50 p-3 rounded-lg">
-                  <div className="text-lg font-bold">{foodData.nutrition.fats}g</div>
-                  <div className="text-sm text-gray-600">Fats</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 mb-4">
-                <button
-                  onClick={() => setServings(Math.max(0, servings - 0.5))}
-                  className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full"
-                >
-                  <MinusCircle size={24} />
-                </button>
-                <span className="w-16 text-center text-xl font-bold">{servings}</span>
-                <button
-                  onClick={() => setServings(servings + 0.5)}
-                  className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full"
-                >
-                  <PlusCircle size={24} />
-                </button>
-                <button
-                  onClick={handleAddFood}
-                  className="ml-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
-                >
-                  Add to Daily Total
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                <p className="font-medium">Ingredients:</p>
-                <p className="text-gray-600">{foodData.ingredients.join(", ")}</p>
-                <p className="font-medium">Allergens:</p>
-                <p className="text-gray-600">{foodData.allergens.join(", ")}</p>
-              </div>
+            {/* Nutrition Information */}
+            <h3 className="font-semibold text-lg mb-2">Nutritional Information</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              {calculatedNutrition &&
+                Object.entries(calculatedNutrition).map(([key, value]) => (
+                  <div key={key} className="bg-green-100 p-4 rounded-lg shadow-md transition hover:bg-green-200">
+                    <div className="text-xl font-bold text-green-800">
+                      {typeof value === "number" ? value.toFixed(1) : value}
+                      {key === "calories" ? "" : "g"}
+                    </div>
+                    <div className="text-sm text-gray-600 capitalize">{key}</div>
+                  </div>
+                ))}
             </div>
-          </div>
-        </div>
 
-        {/* Daily Progress */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Activity className="text-emerald-500" />
-            Daily Progress
-          </h2>
-          <div className="flex flex-wrap justify-center gap-8">
-            <NutritionCircle
-              value={foodData.nutrition.calories * servings}
-              total={DAILY_GOALS.calories}
-              label="Calories"
-              color="stroke-emerald-500"
-            />
-            <NutritionCircle
-              value={foodData.nutrition.protein * servings}
-              total={DAILY_GOALS.protein}
-              label="Protein"
-              color="stroke-blue-500"
-            />
-            <NutritionCircle
-              value={foodData.nutrition.carbs * servings}
-              total={DAILY_GOALS.carbs}
-              label="Carbs"
-              color="stroke-orange-500"
-            />
-            <NutritionCircle
-              value={foodData.nutrition.fats * servings}
-              total={DAILY_GOALS.fats}
-              label="Fats"
-              color="stroke-purple-500"
-            />
+            {/* Servings Control */}
+            <h3 className="font-semibold text-lg mb-2">Servings</h3>
+            <div className="flex items-center gap-4 mb-4 border-t pt-4 border-gray-300">
+              <button
+                onClick={() => setServings(Math.max(0.5, servings - 0.5))}
+                className="p-2 text-green-600 hover:bg-green-100 rounded-full transition"
+              >
+                <MinusCircle size={24} />
+              </button>
+              <span className="w-16 text-center text-xl font-bold">{servings}</span>
+              <button
+                onClick={() => setServings(servings + 0.5)}
+                className="p-2 text-green-600 hover:bg-green-100 rounded-full transition"
+              >
+                <PlusCircle size={24} />
+              </button>
+            </div>
+
+            {/* Ingredients and Info */}
+            <h3 className="font-semibold text-lg mb-2">Ingredients</h3>
+            <p className="text-gray-600 mb-4">{dish.items?.map((item) => item.name).join(", ")}</p>
+
+            {dish.dietaryInfo && (
+              <>
+                <h3 className="font-semibold text-lg mb-2">Dietary Info</h3>
+                <p className="text-gray-600 mb-4">{dish.dietaryInfo.join(", ")}</p>
+              </>
+            )}
+            
+            {dish.allergens && (
+              <>
+                <h3 className="font-semibold text-lg mb-2">Allergens</h3>
+                <p className="text-gray-600 mb-4">{dish.allergens.join(", ")}</p>
+              </>
+            )}
+            
+            {dish.prepTime && (
+              <>
+                <h3 className="font-semibold text-lg mb-2">Prep Time</h3>
+                <p className="text-gray-600">{dish.prepTime}</p>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -182,4 +172,4 @@ const FoodDetailTracker = () => {
   );
 };
 
-export default FoodDetailTracker;
+export default DishTracker;
