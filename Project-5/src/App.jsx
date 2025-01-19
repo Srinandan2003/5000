@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Box, Container, Typography } from '@mui/material';
 import DishGrid from './components/QRGenerator/DishGrid';
+import './App.css';
 
 // Create a custom theme
 const theme = createTheme({

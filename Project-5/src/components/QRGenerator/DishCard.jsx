@@ -170,7 +170,7 @@ const DishCard = ({ dish, index }) => {
                             ×
                         </IconButton>
                         <QRCodeSVG 
-                            value={JSON.stringify(dish)}
+                            value={`/calculator/${dish.id}`}
                             size={200}
                             level="H"
                         />
